@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import Any
 from pathlib import Path
@@ -7,11 +8,13 @@ from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.event.filter import EventMessageType
 from astrbot.api.star import Context, Star, register
 from astrbot.core.message.message_event_result import MessageChain
+from astrbot.api.message_components import Plain, Image, At, Face, Poke, Record
 
 from .utils import PluginUtils
 
 plugin_dir = Path(__file__).resolve().parent
-plugin_util = PluginUtils(plugin_dir / 'config.yaml')
+config_path = os.path.join(plugin_dir, 'config.yaml')
+plugin_util = PluginUtils(config_path)
 
 
 @register(
@@ -56,27 +59,18 @@ class AgenticMemoryPluginV2(Star):
         
         if not plugin_util.is_group_allowed(group_id=group_id):     # 判断群号
             return
-
-        # 2. 提取纯文本消息（暂不处理图片/表情等多模态）
-        message_text = str(getattr(event, "message_str", "")).strip()
-        sender_name = str(event.get_sender_name()).strip() or "Unknown"
+        
+        # === 消息内容解析 ===
+        message = plugin_util.get_message(event)
 
         # 3. 打印基础日志（确认 I/O 畅通）
-        logger.info(f"[Group: {group_id}] {sender_name}: {message_text}")
-
-        # ---------------------------------------------------------
-        # [TODO: Milestone 2] 未来这里将被替换为流水线调用：
-        # ctx = MessageContext(event, group_id, sender_name, message_text)
-        # await self.pipeline.process(ctx)
-        # if ctx.should_reply:
-        #     await self._send_reply(event, ctx.reply_text)
-        # ---------------------------------------------------------
-
+        logger.info(f"[Group: {group_id}] {message['name']}: {message['text']}")
+        
         # 4. 临时回显逻辑 (Echo)：用于测试双向通信是否正常
         # 设定一个极简的触发词避免它一直刷屏
-        if "测试呼叫" in message_text:
+        if "测试呼叫" in message['text']:
             # 强化群聊身份设定，避免 AI 味
-            reply_text = f"收到啦 {sender_name}，通道一切正常。" 
+            reply_text = f"收到啦 {message['name']}，通道一切正常。" 
             await self._send_reply(event, reply_text)
 
     async def _send_reply(self, event: AstrMessageEvent, text: str) -> None:

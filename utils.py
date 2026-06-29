@@ -1,6 +1,8 @@
 import yaml
 from typing import Any, Dict
 
+from astrbot.api.message_components import Plain, Image, At, Face, Poke, Record
+
 
 
 class PluginUtils:
@@ -27,3 +29,43 @@ class PluginUtils:
             if str(item).strip()
         }
         return group_id in whitelist if whitelist else False
+
+    def get_message(self, event):
+        '''
+        Returns:
+            消息内容
+        '''
+        message_chain = event.get_messages()
+
+        sender_id = event.get_sender_id()
+        sender_name = str(event.get_sender_name()).strip() or "Unknown"
+
+        result = {'id': sender_id, 'name': sender_name}
+        
+        for component in message_chain:
+            if isinstance(component, Plain):
+                print(f"文本: {component.text}")
+                result['text'] = component.text
+            
+            elif isinstance(component, Image):
+                print(f"图片URL: {component.url}")
+                result['image'] = component.url
+            
+            elif isinstance(component, At):
+                print(f"@了QQ: {component.qq}")
+                result['at'] = component.qq
+            
+            elif isinstance(component, Face):
+                print(f"表情: {component.id}")
+                result['emoji'] = component.id
+            
+            elif isinstance(component, Poke):
+                print(f"戳一戳类型: {component.type}")
+                result['poke'] = component.type
+            
+            elif isinstance(component, Record):
+                print(f"语音URL: {component.url}")
+                result['record'] = component.url
+        
+        return result
+
