@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+from pathlib import Path
 
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, filter
@@ -9,8 +10,8 @@ from astrbot.core.message.message_event_result import MessageChain
 
 from .utils import PluginUtils
 
-
-plugin_util = PluginUtils('./config.yaml')
+plugin_dir = Path(__file__).resolve().parent
+plugin_util = PluginUtils(plugin_dir / 'config.yaml')
 
 
 @register(
