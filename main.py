@@ -82,7 +82,7 @@ class AgenticMemoryPluginV2(Star):
     async def _send_reply(self, event: AstrMessageEvent, text: str) -> None:
         """
         统一的发送回复接口。
-        未来这里可以加入长文本截断、分段发送、延迟打字机效果等逻辑。
+        包含对底层框架“假超时”报错的优雅降级处理。
         """
         if not text:
             return
@@ -92,6 +92,16 @@ class AgenticMemoryPluginV2(Star):
             await event.send(event.plain_result(text))
             logger.info(f"[Reply Sent] {text}")
         except Exception as exc:
-            logger.error(f"[Reply Error] 发送消息失败: {exc}。原本要发送的内容：{text}")
+            error_msg = str(exc)
+            
+            # 针对 NapCat/NTQQ 底层常见的 1200 超时假报错进行拦截
+            if "Timeout" in error_msg and ("retcode=1200" in error_msg or "1200" in error_msg):
+                logger.warning(
+                    f"[Reply Warning] 触发底层发送超时 (Retcode 1200)。消息大概率已成功到达群聊，无需重试。"
+                    f"原始内容摘要: {text[:50]}..."
+                )
+            else:
+                # 只有遇到非 1200 超时的真正错误，才报 Error
+                logger.error(f"[Reply Error] 发送消息真实失败: {exc}")
 
     # [TODO: Milestone 5] 在这里添加 APScheduler 的启动逻辑
