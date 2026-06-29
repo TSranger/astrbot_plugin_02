@@ -7,6 +7,11 @@ from astrbot.api.event.filter import EventMessageType
 from astrbot.api.star import Context, Star, register
 from astrbot.core.message.message_event_result import MessageChain
 
+from utils import PluginUtils
+
+
+plugin_util = PluginUtils('./config.yaml')
+
 
 @register(
     "agentic_memory_v2",   # 插件名称
@@ -46,6 +51,9 @@ class AgenticMemoryPluginV2(Star):
         ).strip()
         
         if not group_id:
+            return
+        
+        if not plugin_util.is_group_allowed(group_id=group_id):     # 判断群号
             return
 
         # 2. 提取纯文本消息（暂不处理图片/表情等多模态）

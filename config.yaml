@@ -1,0 +1,9 @@
+
+
+group_scope:
+  enabled: true
+  group_whitelist: 
+    - '966648392'
+    # - '157903619'
+
+
