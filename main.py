@@ -7,7 +7,7 @@ from astrbot.api.event.filter import EventMessageType
 from astrbot.api.star import Context, Star, register
 from astrbot.core.message.message_event_result import MessageChain
 
-from utils import PluginUtils
+from .utils import PluginUtils
 
 
 plugin_util = PluginUtils('./config.yaml')
